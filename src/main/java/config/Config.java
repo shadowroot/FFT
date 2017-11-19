@@ -13,11 +13,11 @@ public class Config {
     private Config(int sampleRate){
         addOption(SAMPLE_RATE, sampleRate);
         addOption(MAG_IN_DB, true);
-        addOption(RAW_DATA, true);
+        addOption(RAW_DATA, false);
     }
 
     private Config(){
-        addOption(MAG_IN_DB, true);
+        addOption(MAG_IN_DB, false);
         addOption(RAW_DATA, true);
     }
 

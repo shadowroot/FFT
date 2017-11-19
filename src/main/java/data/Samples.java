@@ -50,6 +50,10 @@ public class Samples {
         }
     }
 
+    public void addSamples(double[] array){
+        addSamples(DoubleBuffer.wrap(array));
+    }
+
     public void addSamples(DoubleBuffer buffer){
         double[] array = buffer.array();
         allocate(buffer);
@@ -64,11 +68,11 @@ public class Samples {
     }
 
     public int getNSamples(int n){
-        int start = processedSamples;
-        processedSamples += n;
         if(processedSamples >= samples.capacity()){
             return -1;
         }
+        int start = processedSamples;
+        processedSamples += n;
         return start;
     }
 

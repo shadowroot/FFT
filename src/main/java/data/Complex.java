@@ -29,11 +29,11 @@ public class Complex implements Serializable {
         return this;
     }
 
-    double magnitude(){
+    public double magnitude(){
         return Math.sqrt(re*re + im*im);
     }
-    public double mag_in_db(){
-        return 20*Math.log10(magnitude());
+    public static double mag_in_db(double magnitude){
+        return 20*Math.log10(magnitude);
     }
 
 }

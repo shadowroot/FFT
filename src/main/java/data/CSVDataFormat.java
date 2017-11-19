@@ -59,24 +59,41 @@ public class CSVDataFormat implements FormatInterface{
         this.config = config;
         StringBuilder sb = new StringBuilder();
         boolean header_read = false;
+        boolean fft = false;
+        int fft_offset = 0;
+        int sampleRate = 0;
         String key = "";
         List<Double> temp_buffer = new ArrayList<Double>();
+        DoubleBuffer mags = null;
         for(int b; (b=is.read()) >= 0;){
             if(b == KW_DELIMITER.charAt(0)){
                 key = sb.toString().trim();
                 sb = new StringBuilder();
             }
             else if(b == LINE_DELIMITER.charAt(0)){
+                if(header_read && !fft){
+                    fft = true;
+                    sampleRate = config.getSampleRate();
+                    mags = DoubleBuffer.allocate(sampleRate);
+                }
+                else if(fft){
+                    samples.addMagnitudes(fft_offset, mags.array());
+                    mags = DoubleBuffer.allocate(sampleRate);
+                }
                 header_read = true;
             }
             else if(b == ELEMENTS_DELIMITER.charAt(0)){
-                if(!header_read){
+                if(!header_read && !fft){
                     addConfig(key, sb.toString().trim());
                     sb = new StringBuilder();
                 }
-                else{
+                else if(!fft){
                     Double val = Double.parseDouble(sb.toString().trim());
                     temp_buffer.add(val);
+                }
+                else{
+                    Double val = Double.parseDouble(sb.toString().trim());
+                    mags.put(val);
                 }
             }
             else{
