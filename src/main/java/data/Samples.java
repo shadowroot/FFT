@@ -23,6 +23,7 @@ public class Samples {
         else{
             DoubleBuffer tmp_allocate = DoubleBuffer.allocate(b.capacity() + samples.capacity());
             tmp_allocate.put(samples);
+            samples = tmp_allocate;
         }
     }
 

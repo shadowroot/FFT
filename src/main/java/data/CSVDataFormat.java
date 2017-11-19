@@ -24,9 +24,8 @@ public class CSVDataFormat implements FormatInterface{
             sb.append(makePair(key, opts.get(key)));
             sb.append(ELEMENTS_DELIMITER);
         }
-        sb.append(LINE_DELIMITER);
-
         os.write(sb.toString().getBytes());
+        os.write(LINE_DELIMITER.getBytes());
 
         if(config.ShouldWriteRAWData()) {
             DoubleBuffer db = samples.getSamples();

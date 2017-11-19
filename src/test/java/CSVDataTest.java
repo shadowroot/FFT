@@ -12,9 +12,13 @@ public class CSVDataTest {
         double t = 0;
         for(int i=0; i < num_samples; i++){
             data[i] = 0;
+            /*
             for(int f=0; f < sampleRate / 16; f++){
                 data[i] += Math.sin(2*Math.PI*f*t);
             }
+            */
+            int f = sampleRate;
+            data[i] += Math.sin(2*Math.PI*f*t);
             t+=period;
         }
         return data;
@@ -22,14 +26,17 @@ public class CSVDataTest {
 
     @Test
     public void csvTest() throws Exception {
-        int sampleRate = 44100;
-        double[] data = generateData(sampleRate, sampleRate);
+        int sampleRate = 8000;
+        int secs = 20;
+        double[] data = generateData(secs * sampleRate, sampleRate);
+        long start = System.currentTimeMillis();
         IO io = new IO(System.in, System.out, new CSVDataFormat());
         Samples samples = new Samples();
         samples.addSamples(data);
-        FFT fft = new FFT(sampleRate, samples);
+        FFT fft = new FFT(sampleRate, samples, 4);
         fft.fft();
         io.write(samples);
-        assert samples.getMagnitudes().size() == 1;
+        System.out.println((System.currentTimeMillis() - start) / 1000 + " s");
+        assert samples.getMagnitudes().size() == secs;
     }
 }
