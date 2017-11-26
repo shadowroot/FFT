@@ -63,6 +63,14 @@ public class Samples {
         }
     }
 
+    public void setSamples(DoubleBuffer samples) {
+        this.samples = samples;
+    }
+
+    public void setMagnitudes(List<double[]> magnitudes) {
+        this.magnitudes = magnitudes;
+    }
+
     public void addSamples(Samples samples){
         allocate(samples.getSamples());
         this.samples.put(samples.getSamples());

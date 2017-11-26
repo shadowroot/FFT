@@ -33,7 +33,7 @@ public class Complex implements Serializable {
         return Math.sqrt(re*re + im*im);
     }
     public static double mag_in_db(double magnitude){
-        return 20*Math.log10(magnitude);
+        return 10*Math.log10(magnitude);
     }
 
 }

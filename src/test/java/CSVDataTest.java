@@ -2,11 +2,23 @@ import data.CSVDataFormat;
 import data.IO;
 import data.Samples;
 import fft.FFT;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class CSVDataTest {
 
+    Samples samples = null;
+    double[] data = null;
+
+    int sampleRate = 44100;
+    int secs = 5;
+
     double[] generateData(int num_samples, int sampleRate){
+        if(this.data != null){
+            return this.data;
+        }
         double[] data = new double[num_samples];
         double period = 1/(double)sampleRate;
         double t = 0;
@@ -21,22 +33,60 @@ public class CSVDataTest {
             data[i] += Math.sin(2*Math.PI*f*t);
             t+=period;
         }
+        this.data = data;
         return data;
+    }
+
+    private void checkSamples(Samples samples){
+        if (this.samples == null){
+            this.samples = samples;
+        }
+        else {
+            assert samples.getMagnitudes() == this.samples.getMagnitudes();
+        }
+    }
+
+
+
+    private OutputStream NullOutputStream(){
+        return new OutputStream() {
+            @Override
+            public void write(int b) throws IOException {
+
+            }
+        };
     }
 
     @Test
     public void csvTest() throws Exception {
-        int sampleRate = 8000;
-        int secs = 20;
         double[] data = generateData(secs * sampleRate, sampleRate);
-        long start = System.currentTimeMillis();
-        IO io = new IO(System.in, System.out, new CSVDataFormat());
+        IO io = new IO(System.in, NullOutputStream(), new CSVDataFormat());
         Samples samples = new Samples();
         samples.addSamples(data);
-        FFT fft = new FFT(sampleRate, samples, 4);
+        FFT fft = new FFT(sampleRate, samples);
+        long start = System.currentTimeMillis();
         fft.fft();
+        System.out.println("Cores " + fft.getThreadsNumber() + " : "+(System.currentTimeMillis() - start) / 1000 + " s");
+        System.out.println("Cores " + fft.getThreadsNumber() + " : "+(System.currentTimeMillis() - start) / 1000 / secs + " s per sec of record");
         io.write(samples);
-        System.out.println((System.currentTimeMillis() - start) / 1000 + " s");
+        checkSamples(samples);
         assert samples.getMagnitudes().size() == secs;
     }
+
+    /*
+    @Test
+    public void csvTestSingle() throws Exception {
+        double[] data = generateData(secs * sampleRate, sampleRate);
+        IO io = new IO(System.in, NullOutputStream(), new CSVDataFormat());
+        Samples samples = new Samples();
+        samples.addSamples(data);
+        FFT fft = new FFT(sampleRate, samples);
+        long start = System.currentTimeMillis();
+        fft.fft();
+        System.out.println("Core 1 : " + (System.currentTimeMillis() - start) / 1000 + " s");
+        io.write(samples);
+        checkSamples(samples);
+        assert samples.getMagnitudes().size() == secs;
+    }
+    */
 }
