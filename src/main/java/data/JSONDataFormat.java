@@ -1,7 +1,6 @@
 package data;
 
 import config.Config;
-import javaslang.collection.Array;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
