@@ -29,11 +29,6 @@ public class FFT {
         this.samples = samples;
         config.setSampleRate(sampleRate);
         this.threadsNumber = threadsNumber;
-        /*
-        if(usePrecalc){
-            precalcs(sampleRate);
-        }
-        */
     }
 
     public int getThreadsNumber() {
@@ -52,38 +47,12 @@ public class FFT {
         this.samples = samples;
     }
 
-    /*
-    void precalcs(int n){
-        int valid_freqs = n/2;
-        if(sins != null && sins.length == valid_freqs * n){
-            return;
-        }
-        sins = new double[valid_freqs*valid_freqs];
-        coss = new double[valid_freqs*valid_freqs];
-        for(int k=0; k < valid_freqs; k++) {
-            for (int m = 0; m < valid_freqs; m++) {
-                sins[m*k] = Math.sin(-2 * Math.PI * m * k / valid_freqs);
-                coss[m*k] = Math.cos(-2 * Math.PI * m * k / valid_freqs);
-            }
-        }
-    }
-    */
 
     double calcSin(int m, int k,int n){
-        /*
-        if(usePrecalc && sins != null){
-            return sins[m*k];
-        }
-        */
         return Math.sin(-2 * Math.PI * m * k / (n/2));
     }
 
     double calcCos(int m, int k,int n){
-        /*
-        if(usePrecalc && coss != null){
-            return coss[m*k];
-        }
-        */
         return Math.cos(-2 * Math.PI * m * k / (n/2));
     }
 

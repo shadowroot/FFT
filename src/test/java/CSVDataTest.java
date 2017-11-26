@@ -72,21 +72,4 @@ public class CSVDataTest {
         checkSamples(samples);
         assert samples.getMagnitudes().size() == secs;
     }
-
-    /*
-    @Test
-    public void csvTestSingle() throws Exception {
-        double[] data = generateData(secs * sampleRate, sampleRate);
-        IO io = new IO(System.in, NullOutputStream(), new CSVDataFormat());
-        Samples samples = new Samples();
-        samples.addSamples(data);
-        FFT fft = new FFT(sampleRate, samples);
-        long start = System.currentTimeMillis();
-        fft.fft();
-        System.out.println("Core 1 : " + (System.currentTimeMillis() - start) / 1000 + " s");
-        io.write(samples);
-        checkSamples(samples);
-        assert samples.getMagnitudes().size() == secs;
-    }
-    */
 }
