@@ -26,16 +26,36 @@ public class IO {
         this.fmt = fmt;
     }
 
+    public IO(OutputStream os, FormatInterface fmt){
+        this.os = os;
+        this.fmt = fmt;
+    }
+
+    public IO(InputStream is, FormatInterface fmt){
+        this.is = is;
+        this.fmt = fmt;
+    }
+
     public void close() throws IOException {
-        is.close();
-        os.close();
+        if(is != null) {
+            is.close();
+        }
+        if(os != null) {
+            os.close();
+        }
     }
 
     public void write(Samples samples) throws Exception {
+        if(os == null){
+            throw new IOException("No IS");
+        }
         fmt.encode(config, samples, os);
     }
 
     public Samples read() throws IOException {
+        if(is == null){
+            throw new IOException("No IS");
+        }
         return fmt.decode(config, is);
     }
 }

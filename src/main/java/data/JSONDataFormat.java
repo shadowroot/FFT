@@ -37,28 +37,45 @@ public class JSONDataFormat implements FormatInterface {
             obj.put(RAW_DATA, convertFromDoubleBuffer(samples.getSamples()));
         }
         JSONArray magnitudes = new JSONArray();
-        for(double[] array : samples.getMagnitudes()) {
-            DoubleBuffer db = DoubleBuffer.wrap(array);
-            magnitudes.put(convertFromDoubleBuffer(db));
+        for(Object magnitudeValues : samples.getMagnitudes()) {
+            magnitudes.put(convertFromDoubleArray((double[])magnitudeValues));
         }
         obj.put(MAGNITUDES, magnitudes);
         os.write(obj.toString().getBytes());
     }
 
-    private JSONArray convertFromDoubleBuffer(DoubleBuffer db){
+    private JSONArray convertFromDoubleArray(double[] db){
         JSONArray array = new JSONArray();
-        for(int i=0; i < db.limit(); i++){
+        for(int i=0; i < db.length; i++){
+            array.put(db[i]);
+        }
+        return array;
+    }
+
+    private JSONArray convertFromDoubleBuffer(List db){
+        JSONArray array = new JSONArray();
+        for(int i=0; i < db.size(); i++){
             array.put(db.get(i));
         }
         return array;
     }
 
-    private DoubleBuffer convertToDoubleBuffer(JSONArray array){
-        DoubleBuffer db = DoubleBuffer.allocate(array.length());
+    private List<Double> convertToDoubleList(JSONArray array){
+        ArrayList<Double> values = new ArrayList<>();
         for(Object val : array){
-            db.put((Double)val);
+            values.add((Double)val);
         }
-        return db;
+        return values;
+    }
+
+    private double[] convertToDoubleArray(JSONArray array){
+        double[] ret = new double[array.length()];
+        int idx = 0;
+        for(Object val : array){
+            ret[idx] = (Double)val;
+            idx++;
+        }
+        return ret;
     }
 
     public Samples decode(Config config, InputStream is) throws IOException {
@@ -74,17 +91,17 @@ public class JSONDataFormat implements FormatInterface {
                 newOpts.put(key, configOpts.get(key));
             }
             config.setKwOptions(newOpts);
-            samples = new Samples();
+            samples = new Samples<Double>();
             JSONArray dataArrays = (JSONArray) json.get(RAW_DATA);
             for(Object rawData : dataArrays) {
-                samples.addSamples(convertToDoubleBuffer((JSONArray)rawData));
+                samples.addSamples(convertToDoubleList((JSONArray)rawData));
             }
             if(json.has(MAGNITUDES)) {
                 JSONArray magnitudeArrays = (JSONArray) json.get(MAGNITUDES);
                 List<double[]> newMagnitudes = new ArrayList<>();
                 for(Object magnitudeArrayO : magnitudeArrays){
                     JSONArray magnitudeArray = (JSONArray)magnitudeArrayO;
-                    newMagnitudes.add(convertToDoubleBuffer(magnitudeArray).array());
+                    newMagnitudes.add(convertToDoubleArray(magnitudeArray));
                 }
                 samples.setMagnitudes(newMagnitudes);
             }

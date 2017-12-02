@@ -28,11 +28,11 @@ public class CSVDataFormat implements FormatInterface{
         os.write(LINE_DELIMITER.getBytes());
 
         if(config.ShouldWriteRAWData()) {
-            DoubleBuffer db = samples.getSamples();
-            for (int i = 0; i < db.capacity(); i++) {
-                Double val = db.get(i);
+            List values = samples.getSamples();
+            for (int i = 0; i < values.size(); i++) {
+                Double val = (double)values.get(i);
                 os.write(val.toString().getBytes());
-                if (i < (db.capacity() - 1)) {
+                if (i < (values.size() - 1)) {
                     os.write(ELEMENTS_DELIMITER.getBytes());
                 }
             }
@@ -54,7 +54,7 @@ public class CSVDataFormat implements FormatInterface{
     }
 
     public Samples decode(Config config, InputStream is) throws IOException {
-        Samples samples = new Samples();
+        Samples samples = new Samples<Double>();
         this.config = config;
         StringBuilder sb = new StringBuilder();
         boolean header_read = false;
@@ -99,9 +99,7 @@ public class CSVDataFormat implements FormatInterface{
                 sb.append(b);
             }
         }
-        DoubleBuffer db = DoubleBuffer.allocate(temp_buffer.size());
-        System.arraycopy(temp_buffer, 0, db, 0, temp_buffer.size());
-        samples.addSamples(db);
+        samples.addSamples(temp_buffer);
         return samples;
     }
 

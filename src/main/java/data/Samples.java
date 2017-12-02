@@ -2,82 +2,50 @@ package data;
 
 import java.nio.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Samples class
  */
-public class Samples {
+public class Samples<T> {
 
-    private DoubleBuffer samples = null;
-    private List<double[]> magnitudes = new ArrayList<double[]>();
+    private List<T> samples = null;
+    private List<Double[]> magnitudes = new ArrayList<>();
     private int processedSamples = 0;
+    private Logger logger;
 
     public Samples(){
+        logger = Logger.getLogger("FFT-Samples");
+        samples = new ArrayList<>();
     }
 
-    private void allocate(Buffer b){
-        if(samples == null) {
-            samples = DoubleBuffer.allocate(b.capacity());
-        }
-        else{
-            DoubleBuffer tmp_allocate = DoubleBuffer.allocate(b.capacity() + samples.capacity());
-            tmp_allocate.put(samples);
-            samples = tmp_allocate;
-        }
+    public void addSamples(Collection<T> array){
+        samples.addAll(array);
     }
 
-    public void addSamples(IntBuffer buffer){
-        int[] array = buffer.array();
-        allocate(buffer);
-        for(int i=0; i < array.length; i++){
-            samples.put(((double)array[i] / Integer.MAX_VALUE));
+    public void addSamples(T[] array){
+        for(int i=0; i < array.length; i++) {
+            samples.add(array[i]);
         }
     }
 
-    public void addSamples(ShortBuffer buffer){
-        short[] array = buffer.array();
-        allocate(buffer);
-        for(int i=0; i < array.length; i++){
-            samples.put(((double)array[i] / Short.MAX_VALUE));
-        }
-    }
-
-    public void addSamples(FloatBuffer buffer){
-        float[] array = buffer.array();
-        allocate(buffer);
-        for(int i=0; i < array.length; i++){
-            samples.put((double)array[i]);
-        }
-    }
-
-    public void addSamples(double[] array){
-        addSamples(DoubleBuffer.wrap(array));
-    }
-
-    public void addSamples(DoubleBuffer buffer){
-        double[] array = buffer.array();
-        allocate(buffer);
-        for(int i=0; i < array.length; i++){
-            samples.put(array[i]);
-        }
-    }
-
-    public void setSamples(DoubleBuffer samples) {
+    public void setSamples(List<T> samples) {
         this.samples = samples;
     }
 
-    public void setMagnitudes(List<double[]> magnitudes) {
+    public void setMagnitudes(List<Double[]> magnitudes) {
         this.magnitudes = magnitudes;
     }
 
     public void addSamples(Samples samples){
-        allocate(samples.getSamples());
-        this.samples.put(samples.getSamples());
+        this.samples.addAll(samples.getSamples());
     }
 
     public int getNSamples(int n){
-        if(processedSamples >= samples.capacity()){
+        if(processedSamples >= samples.size()){
             return -1;
         }
         int start = processedSamples;
@@ -85,15 +53,19 @@ public class Samples {
         return start;
     }
 
-    public void addMagnitudes(int offset, double [] magnitudes){
+    public T getSample(int pos){
+        return samples.get(pos);
+    }
+
+    public void addMagnitudes(int offset, Double [] magnitudes){
         this.magnitudes.add(magnitudes);
     }
 
-    public List<double[]> getMagnitudes() {
+    public List<Double[]> getMagnitudes() {
         return magnitudes;
     }
 
-    public DoubleBuffer getSamples() {
+    public List<T> getSamples() {
         return samples;
     }
 

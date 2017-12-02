@@ -9,21 +9,21 @@ import java.io.OutputStream;
 
 public class CSVDataTest {
 
-    Samples samples = null;
-    double[] data = null;
+    Samples<Double> samples = null;
+    Double[] data = null;
 
     int sampleRate = 44100;
     int secs = 5;
 
-    double[] generateData(int num_samples, int sampleRate){
+    Double[] generateData(int num_samples, int sampleRate){
         if(this.data != null){
             return this.data;
         }
-        double[] data = new double[num_samples];
+        Double[] data = new Double[num_samples];
         double period = 1/(double)sampleRate;
         double t = 0;
         for(int i=0; i < num_samples; i++){
-            data[i] = 0;
+            data[i] = new Double(0);
             /*
             for(int f=0; f < sampleRate / 16; f++){
                 data[i] += Math.sin(2*Math.PI*f*t);
@@ -59,9 +59,9 @@ public class CSVDataTest {
 
     @Test
     public void csvTest() throws Exception {
-        double[] data = generateData(secs * sampleRate, sampleRate);
+        Double[] data = generateData(secs * sampleRate, sampleRate);
         IO io = new IO(System.in, NullOutputStream(), new CSVDataFormat());
-        Samples samples = new Samples();
+        Samples<Double> samples = new Samples<>();
         samples.addSamples(data);
         FFT fft = new FFT(sampleRate, samples);
         long start = System.currentTimeMillis();
