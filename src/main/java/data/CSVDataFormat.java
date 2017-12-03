@@ -40,16 +40,22 @@ public class CSVDataFormat implements FormatInterface{
         }
 
         //FFT results
-        List<double[]> magnitudes = samples.getMagnitudes();
+        List<Double[]> magnitudes = samples.getMagnitudes();
         for(int i=0; i < magnitudes.size(); i++){
-            double[] mag = magnitudes.get(i);
-            for(int j = 0; j < mag.length; j++) {
-                os.write(Double.valueOf(mag[j]).toString().getBytes());
-                if(j < (mag.length-1)){
-                    os.write(ELEMENTS_DELIMITER.getBytes());
+            Double[] mag = magnitudes.get(i);
+            if(mag != null) {
+                for (int j = 0; j < mag.length; j++) {
+                    try {
+                        os.write(mag[j].toString().getBytes());
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    if (j < (mag.length - 1)) {
+                        os.write(ELEMENTS_DELIMITER.getBytes());
+                    }
                 }
+                os.write(LINE_DELIMITER.getBytes());
             }
-            os.write(LINE_DELIMITER.getBytes());
         }
     }
 
@@ -59,11 +65,10 @@ public class CSVDataFormat implements FormatInterface{
         StringBuilder sb = new StringBuilder();
         boolean header_read = false;
         boolean fft = false;
-        int fft_offset = 0;
         int sampleRate = 0;
         String key = "";
         List<Double> temp_buffer = new ArrayList<Double>();
-        DoubleBuffer mags = null;
+        List<Double> mags = null;
         for(int b; (b=is.read()) >= 0;){
             if(b == KW_DELIMITER.charAt(0)){
                 key = sb.toString().trim();
@@ -73,11 +78,10 @@ public class CSVDataFormat implements FormatInterface{
                 if(header_read && !fft){
                     fft = true;
                     sampleRate = config.getSampleRate();
-                    mags = DoubleBuffer.allocate(sampleRate);
+                    mags = new ArrayList<>();
                 }
                 else if(fft){
-                    samples.addMagnitudes(fft_offset, mags.array());
-                    mags = DoubleBuffer.allocate(sampleRate);
+                    samples.addMagnitudes((Double[]) mags.toArray());
                 }
                 header_read = true;
             }
@@ -92,7 +96,7 @@ public class CSVDataFormat implements FormatInterface{
                 }
                 else{
                     Double val = Double.parseDouble(sb.toString().trim());
-                    mags.put(val);
+                    mags.add(val);
                 }
             }
             else{
@@ -100,6 +104,7 @@ public class CSVDataFormat implements FormatInterface{
             }
         }
         samples.addSamples(temp_buffer);
+        config.setSampleRate(sampleRate);
         return samples;
     }
 

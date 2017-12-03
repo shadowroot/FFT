@@ -13,7 +13,7 @@ public class CSVDataTest {
     Double[] data = null;
 
     int sampleRate = 44100;
-    int secs = 5;
+    int secs = 1;
 
     Double[] generateData(int num_samples, int sampleRate){
         if(this.data != null){

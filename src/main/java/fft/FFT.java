@@ -64,26 +64,32 @@ public class FFT{
         return samples;
     }
 
-    Complex calcSum(final Samples currentSamples, int k, int n, int pos){
+    Complex calcSum(final Samples currentSamples, int k, int n, int pos) {
         Complex sum1 = new Complex(0, 0);
         Complex sum2 = new Complex(0, 0);
-        int end = n/2 - 1;
-        for (int i=0; i < end; i++) {
-            sum1.add(new Complex(calcCos(i, k, n), calcSin(i, k, n)).mul((double)currentSamples.getSample(pos + 2 * i)));
+        int end = n / 2 - 1;
+        for (int i = 0; i < end; i++) {
+            sum1.add(new Complex(calcCos(i, k, n), calcSin(i, k, n)).mul((double) currentSamples.getSample(pos + 2 * i)));
         }
-        for (int i=0; i < end; i++) {
-            sum2.add(new Complex(calcCos(i, k, n), calcSin(i, k, n)).mul((double)currentSamples.getSample(pos + 2 * i + 1)));
+        for (int i = 0; i < end; i++) {
+            sum2.add(new Complex(calcCos(i, k, n), calcSin(i, k, n)).mul((double) currentSamples.getSample(pos + 2 * i + 1)));
         }
         sum2.mul(new Complex(calcCos(1, k, n), calcSin(1, k, n)));
         sum1.add(sum2);
         return sum1;
     }
+
     public void parallelRun(final Samples currentSamples, final Double[] magnitudes, final int n, final int pos){
         threads = new Thread[threadsNumber];
         final int step = (n / 2) / threadsNumber;
+        final int diff = (n / 2) - (step*threadsNumber);
         for(int i=0; i < threadsNumber; i++){
             final int kStart = i*step;
-            final int kStop = (i+1)*step;
+            int stop = (i+1)*step;
+            if(i == (threadsNumber - 1)){
+                stop += diff;
+            }
+            final int kStop = stop;
             threads[i] = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -131,7 +137,7 @@ public class FFT{
                     magnitudes[k] = sum.magnitude();
                 }
             }
-            samples.addMagnitudes(pos, magnitudes);
+            samples.addMagnitudes(magnitudes);
             updateNotification();
         }
     }

@@ -1,10 +1,8 @@
 package data;
 
-import java.nio.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -57,8 +55,17 @@ public class Samples<T> {
         return samples.get(pos);
     }
 
-    public void addMagnitudes(int offset, Double [] magnitudes){
+    public void addMagnitudes(Double[] magnitudes){
+        if(this.magnitudes == null){
+            this.magnitudes = new ArrayList<>();
+        }
         this.magnitudes.add(magnitudes);
+    }
+    public void addMagnitudes(List<Double> magnitudes){
+        if(this.magnitudes == null){
+            this.magnitudes = new ArrayList<>();
+        }
+        this.magnitudes.add((Double[]) magnitudes.toArray());
     }
 
     public List<Double[]> getMagnitudes() {
