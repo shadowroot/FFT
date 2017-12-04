@@ -4,29 +4,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Config {
-    private static final String SAMPLE_RATE = "SAMPLE_RATE";
-    private static final String MAG_IN_DB = "MAG_IN_DB";
-    private static final String RAW_DATA = "RAW_DATA";
-    private static Config instance = null;
+    public static final String SAMPLE_RATE = "SAMPLE_RATE";
+    public static final String MAG_IN_DB = "MAG_IN_DB";
+    public static final String RAW_DATA = "RAW_DATA";
     private Map<String, Object> kwOptions = new HashMap<String, Object>();
 
-    private Config(int sampleRate){
+    public Config(int sampleRate){
         addOption(SAMPLE_RATE, sampleRate);
         addOption(MAG_IN_DB, true);
         addOption(RAW_DATA, false);
     }
 
-    private Config(){
-        addOption(MAG_IN_DB, false);
-        addOption(RAW_DATA, true);
-    }
-
-    public static Config getInstance() {
-        if(instance == null){
-            instance = new Config();
-        }
-        return instance;
-    }
 
     public void addOption(String key, Object value){
         kwOptions.put(key, value);
@@ -42,10 +30,6 @@ public class Config {
         return kwOptions;
     }
 
-    public static void setInstance(Config instance) {
-        Config.instance = instance;
-    }
-
     public void setKwOptions(Map<String, Object> kwOptions) {
         this.kwOptions = kwOptions;
     }
@@ -55,6 +39,14 @@ public class Config {
             return (Integer)kwOptions.get(SAMPLE_RATE);
         }
         return -1;
+    }
+
+    public void writeRAWDATA(){
+        kwOptions.put(RAW_DATA, true);
+    }
+
+    public void noWriteRAWDATA(){
+        kwOptions.put(RAW_DATA, false);
     }
 
     public boolean ShouldWriteRAWData(){

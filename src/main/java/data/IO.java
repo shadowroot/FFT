@@ -8,9 +8,10 @@ public class IO {
     InputStream is;
     OutputStream os;
     FormatInterface fmt;
-    Config config = Config.getInstance();
+    Config config;
 
-    public IO(String path, FormatInterface fmt){
+    public IO(Config config, String path, FormatInterface fmt){
+        this.config = config;
         this.fmt = fmt;
         try {
             is = new FileInputStream(path);
@@ -20,21 +21,13 @@ public class IO {
         }
     }
 
-    public IO(InputStream is, OutputStream os, FormatInterface fmt){
+    public IO(Config config, InputStream is, OutputStream os, FormatInterface fmt){
+        this.config = config;
         this.is = is;
         this.os = os;
         this.fmt = fmt;
     }
 
-    public IO(OutputStream os, FormatInterface fmt){
-        this.os = os;
-        this.fmt = fmt;
-    }
-
-    public IO(InputStream is, FormatInterface fmt){
-        this.is = is;
-        this.fmt = fmt;
-    }
 
     public void close() throws IOException {
         if(is != null) {
@@ -50,12 +43,15 @@ public class IO {
             throw new IOException("No IS");
         }
         fmt.encode(config, samples, os);
+        close();
     }
 
     public Samples read() throws IOException {
         if(is == null){
             throw new IOException("No IS");
         }
-        return fmt.decode(config, is);
+        Samples samples = fmt.decode(config, is);
+        close();
+        return samples;
     }
 }

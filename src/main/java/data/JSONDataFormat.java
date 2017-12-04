@@ -1,17 +1,12 @@
 package data;
 
 import config.Config;
-import org.apache.commons.io.IOUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.DoubleBuffer;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,8 +19,10 @@ public class JSONDataFormat implements FormatInterface {
     private static String CONFIG_MAP = "config";
     private static String RAW_DATA = "data";
     private static String MAGNITUDES = "magnitudes";
+    private static final String encoding = "UTF-8";
 
     public void encode(Config config, Samples samples, OutputStream os) throws Exception {
+        OutputStreamWriter osw = new OutputStreamWriter(os, encoding);
         Map<String, Object> values = new HashMap<>();
         JSONObject obj = new JSONObject();
         JSONObject optsMap = new JSONObject();
@@ -34,76 +31,62 @@ public class JSONDataFormat implements FormatInterface {
         }
         obj.put(CONFIG_MAP, optsMap);
         if(config.ShouldWriteRAWData()) {
-            obj.put(RAW_DATA, convertFromDoubleBuffer(samples.getSamples()));
+            JSONArray array = new JSONArray();
+            array.addAll(samples.getSamples());
+            obj.put(RAW_DATA, array);
         }
         JSONArray magnitudes = new JSONArray();
-        for(Object magnitudeValues : samples.getMagnitudes()) {
-            magnitudes.put(convertFromDoubleArray((double[])magnitudeValues));
+        List<List<Double> > mags = samples.getMagnitudes();
+        for(int i=0; i < mags.size(); i++) {
+            JSONArray innerJson = new JSONArray();
+            innerJson.addAll(mags.get(i));
+            magnitudes.add(innerJson);
         }
         obj.put(MAGNITUDES, magnitudes);
-        os.write(obj.toString().getBytes());
-    }
-
-    private JSONArray convertFromDoubleArray(double[] db){
-        JSONArray array = new JSONArray();
-        for(int i=0; i < db.length; i++){
-            array.put(db[i]);
-        }
-        return array;
-    }
-
-    private JSONArray convertFromDoubleBuffer(List db){
-        JSONArray array = new JSONArray();
-        for(int i=0; i < db.size(); i++){
-            array.put(db.get(i));
-        }
-        return array;
-    }
-
-    private List<Double> convertToDoubleList(JSONArray array){
-        ArrayList<Double> values = new ArrayList<>();
-        for(Object val : array){
-            values.add((Double)val);
-        }
-        return values;
-    }
-
-    private double[] convertToDoubleArray(JSONArray array){
-        double[] ret = new double[array.length()];
-        int idx = 0;
-        for(Object val : array){
-            ret[idx] = (Double)val;
-            idx++;
-        }
-        return ret;
+        osw.write(obj.toString());
+        osw.close();
     }
 
     public Samples decode(Config config, InputStream is) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        InputStreamReader isr = new InputStreamReader(is, encoding);
+        int cr;
+        while((cr = isr.read()) >= 0) {
+            sb.append((char) cr);
+        }
+        isr.close();
         JSONParser parser = new JSONParser();
-        Samples samples = null;
+        Samples samples = new Samples<Double>();
         try {
-            String jsonString = IOUtils.toString(is, String.valueOf(StandardCharsets.UTF_8));
-            Object obj = parser.parse(jsonString);
-            JSONObject json = (JSONObject)obj;
-            JSONObject configOpts = (JSONObject)json.get(CONFIG_MAP);
-            Map<String, Object> newOpts = new HashMap<>();
-            for(String key : configOpts.keySet()){
-                newOpts.put(key, configOpts.get(key));
-            }
-            config.setKwOptions(newOpts);
-            samples = new Samples<Double>();
-            JSONArray dataArrays = (JSONArray) json.get(RAW_DATA);
-            for(Object rawData : dataArrays) {
-                samples.addSamples(convertToDoubleList((JSONArray)rawData));
-            }
-            if(json.has(MAGNITUDES)) {
-                JSONArray magnitudeArrays = (JSONArray) json.get(MAGNITUDES);
-                List<double[]> newMagnitudes = new ArrayList<>();
-                for(Object magnitudeArrayO : magnitudeArrays){
-                    JSONArray magnitudeArray = (JSONArray)magnitudeArrayO;
-                    newMagnitudes.add(convertToDoubleArray(magnitudeArray));
+            String jsonString = sb.toString();
+            JSONObject json = (JSONObject)parser.parse(jsonString);
+            if(json.containsKey(CONFIG_MAP)) {
+                JSONObject configOpts = (JSONObject) json.get(CONFIG_MAP);
+                for (Object key1 : configOpts.keySet()) {
+                    String key = (String) key1;
+                    config.addOption(key, configOpts.get(key));
                 }
-                samples.setMagnitudes(newMagnitudes);
+            }
+            if(json.containsKey(RAW_DATA)) {
+                JSONArray dataArrays = (JSONArray) json.get(RAW_DATA);
+                List<Double> data = new ArrayList<>();
+                for(Object value : dataArrays){
+                    data.add((Double)value);
+                }
+                samples.addSamples(data);
+            }
+            if(json.containsKey(MAGNITUDES)) {
+                JSONArray magnitudeArrays = (JSONArray) json.get(MAGNITUDES);
+                List<List<Double> > mags = new ArrayList<>();
+                for(Object arr: magnitudeArrays) {
+                    JSONArray jsonArr = (JSONArray) arr;
+                    List<Double> magList = new ArrayList<>();
+                    for(Object val : jsonArr){
+                        magList.add((Double) val);
+                    }
+                    mags.add(magList);
+                }
+                samples.setMagnitudes(mags);
             }
         }catch (ParseException e) {
             e.printStackTrace();

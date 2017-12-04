@@ -1,6 +1,7 @@
 import config.Config;
 import data.CSVDataFormat;
 import data.IO;
+import data.JSONDataFormat;
 import data.Samples;
 import fft.FFT;
 import org.junit.Assert;
@@ -10,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class CSVDataTest {
+public class JSONDataTest {
 
     Samples<Double> samples = null;
     Double[] data = null;
@@ -20,8 +21,6 @@ public class CSVDataTest {
     int secs = 1;
 
     Config config = new Config(sampleRate);
-
-
 
     Double[] generateData(int num_samples, int sampleRate){
         if(this.data != null){
@@ -66,8 +65,8 @@ public class CSVDataTest {
     private InputStream StringInputStream(final String buff){
 
         return new InputStream() {
-            String buffer = buff;
-            int pos = 0;
+            private String buffer = buff;
+            private int pos = 0;
             @Override
             public int read() throws IOException {
                 if(pos >= buffer.length()){
@@ -81,19 +80,19 @@ public class CSVDataTest {
     }
 
     @Test
-    public void csvTest() throws Exception {
+    public void jsonTest() throws Exception {
         Double[] data = generateData(secs * sampleRate, sampleRate);
-        IO io = new IO(config, StringInputStream(null), StringOutputStream(), new CSVDataFormat());
+        IO io = new IO(config, StringInputStream(null), StringOutputStream(), new JSONDataFormat());
         Samples<Double> samples = new Samples<>();
         samples.addSamples(data);
         FFT fft = new FFT(config, samples);
         long start = System.currentTimeMillis();
         fft.fft();
-        System.out.println("Cores " + fft.getThreadsNumber() + " : "+(System.currentTimeMillis() - start) / 1000 + " s");
-        System.out.println("Cores " + fft.getThreadsNumber() + " : "+(System.currentTimeMillis() - start) / 1000 / secs + " s per sec of record");
+        System.out.println("Cores " + fft.getThreadsNumber() + " : " + (System.currentTimeMillis() - start) / 1000 + " s");
+        System.out.println("Cores " + fft.getThreadsNumber() + " : " + (System.currentTimeMillis() - start) / 1000 / secs + " s per sec of record");
         config.writeRAWDATA();
         io.write(samples);
-        io = new IO(config, StringInputStream(sb.toString()), StringOutputStream(), new CSVDataFormat());
+        io = new IO(config, StringInputStream(sb.toString()), StringOutputStream(), new JSONDataFormat());
         Samples new_samples = io.read();
         Assert.assertEquals(samples.getMagnitudes(), new_samples.getMagnitudes());
         Assert.assertEquals(samples, new_samples);

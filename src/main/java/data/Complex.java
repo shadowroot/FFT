@@ -29,13 +29,13 @@ public class Complex implements Serializable {
         return this;
     }
 
-    public double magnitude(){
+    public Double magnitude(){
         return Math.sqrt(re*re + im*im);
     }
-    public static double mag_in_power_db(double magnitude){
+    public static Double mag_in_power_db(double magnitude){
         return 10*Math.log10(magnitude);
     }
-    public static double mag_in_field_db(double magnitude){
+    public static Double mag_in_field_db(double magnitude){
         return 20*Math.log10(magnitude);
     }
 }

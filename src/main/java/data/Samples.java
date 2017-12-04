@@ -3,6 +3,7 @@ package data;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
@@ -11,7 +12,7 @@ import java.util.logging.Logger;
 public class Samples<T> {
 
     private List<T> samples = null;
-    private List<Double[]> magnitudes = new ArrayList<>();
+    private List<List<Double> > magnitudes = new ArrayList<>();
     private int processedSamples = 0;
     private Logger logger;
 
@@ -34,7 +35,7 @@ public class Samples<T> {
         this.samples = samples;
     }
 
-    public void setMagnitudes(List<Double[]> magnitudes) {
+    public void setMagnitudes(List<List<Double> > magnitudes) {
         this.magnitudes = magnitudes;
     }
 
@@ -55,20 +56,14 @@ public class Samples<T> {
         return samples.get(pos);
     }
 
-    public void addMagnitudes(Double[] magnitudes){
+    public void addMagnitudes(List<Double> magnitudes){
         if(this.magnitudes == null){
             this.magnitudes = new ArrayList<>();
         }
         this.magnitudes.add(magnitudes);
     }
-    public void addMagnitudes(List<Double> magnitudes){
-        if(this.magnitudes == null){
-            this.magnitudes = new ArrayList<>();
-        }
-        this.magnitudes.add((Double[]) magnitudes.toArray());
-    }
 
-    public List<Double[]> getMagnitudes() {
+    public List<List<Double> > getMagnitudes() {
         return magnitudes;
     }
 
@@ -76,4 +71,17 @@ public class Samples<T> {
         return samples;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Samples<?> samples1 = (Samples<?>) o;
+        return  Objects.equals(samples, samples1.samples) &&
+                Objects.equals(magnitudes, samples1.magnitudes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(samples, magnitudes, processedSamples, logger);
+    }
 }

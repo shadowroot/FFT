@@ -5,33 +5,32 @@ import data.Complex;
 import data.Samples;
 
 import java.nio.DoubleBuffer;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class FFT{
-    protected Config config = Config.getInstance();
+    private Config config;
     protected Samples samples;
     protected Thread threads[];
     protected int threadsNumber = 1;
     private Notification notification;
     private int pos;
     private int totalSamples;
-    //private boolean usePrecalc = true;
-    double[] sins;
-    double[] coss;
 
-    public FFT(int sampleRate, Samples samples, Notification notification, int threadsNumber){
-        init(sampleRate, samples, notification, threadsNumber);
+    public FFT(Config config, Samples samples, Notification notification, int threadsNumber){
+        init(config, samples, notification, threadsNumber);
     }
 
-    public FFT(int sampleRate, Samples samples){
+    public FFT(Config config, Samples samples){
         optimalThreads();
-        init(sampleRate, samples, null, threadsNumber);
-    }
+        init(config, samples, null, threadsNumber);
+}
 
-    private void init(int sampleRate, Samples samples, Notification notification, int threadsNumber){
+    private void init(Config config, Samples samples, Notification notification, int threadsNumber){
+        this.config = config;
         this.notification = notification;
         this.samples = samples;
-        config.setSampleRate(sampleRate);
         this.threadsNumber = threadsNumber;
     }
 
@@ -79,7 +78,7 @@ public class FFT{
         return sum1;
     }
 
-    public void parallelRun(final Samples currentSamples, final Double[] magnitudes, final int n, final int pos){
+    public void parallelRun(final Samples currentSamples, final List<Double> magnitudes, final int n, final int pos){
         threads = new Thread[threadsNumber];
         final int step = (n / 2) / threadsNumber;
         final int diff = (n / 2) - (step*threadsNumber);
@@ -94,7 +93,39 @@ public class FFT{
                 @Override
                 public void run() {
                     for(int k=kStart; k < kStop; k++) {
-                        magnitudes[k] = calcSum(currentSamples, k, n, pos).magnitude();
+                        magnitudes.add(calcSum(currentSamples, k, n, pos).magnitude());
+                    }
+                }
+            });
+            threads[i].start();
+        }
+
+        for(int i=0; i < threadsNumber; i++){
+            try {
+                threads[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void parallelRun(final Samples currentSamples, final List<Double> magnitudes, final int n, final int pos, final List<Integer> frequencies){
+        threads = new Thread[threadsNumber];
+        final int step = frequencies.size() / threadsNumber;
+        final int diff = frequencies.size() - (step*threadsNumber);
+        for(int i=0; i < threadsNumber; i++){
+            final int kStart = i*step;
+            int stop = (i+1)*step;
+            if(i == (threadsNumber - 1)){
+                stop += diff;
+            }
+            final int kStop = stop;
+            threads[i] = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for(int i=kStart; i < kStop; i++) {
+                        int k = frequencies.get(i);
+                        magnitudes.add(calcSum(currentSamples, k, n, pos).magnitude());
                     }
                 }
             });
@@ -127,14 +158,41 @@ public class FFT{
         }
         totalSamples = samples.getSamples().size();
         for(; (pos = samples.getNSamples(n)) >= 0;) {
-            final Double[] magnitudes = new Double[n / 2];
+            final List<Double> magnitudes = new ArrayList<>();
             if(threadsNumber > 1){
                 parallelRun(samples, magnitudes, n, pos);
             }
             else {
                 for (int k = 0; k < (n / 2); k++) {
                     Complex sum = calcSum(samples, k, n, pos);
-                    magnitudes[k] = sum.magnitude();
+                    magnitudes.add(sum.magnitude());
+                }
+            }
+            samples.addMagnitudes(magnitudes);
+            updateNotification();
+        }
+    }
+
+    public void fft(List<Integer> frequencies){
+        if(samples == null || samples.getSamples() == null){
+            return;
+        }
+        int n = config.getSampleRate();
+        if(n < 0){
+            System.out.println(new Date().toString() + ": Using FFT without sample rate.");
+            n = samples.getSamples().size();
+        }
+        totalSamples = samples.getSamples().size();
+        for(; (pos = samples.getNSamples(n)) >= 0;) {
+            final List<Double> magnitudes = new ArrayList<>();
+            if(threadsNumber > 1){
+                parallelRun(samples, magnitudes, n, pos, frequencies);
+            }
+            else {
+                for (int i = 0; i < frequencies.size(); i++) {
+                    int k = frequencies.get(i);
+                    Complex sum = calcSum(samples, k, n, pos);
+                    magnitudes.add(sum.magnitude());
                 }
             }
             samples.addMagnitudes(magnitudes);
