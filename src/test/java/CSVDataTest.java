@@ -12,7 +12,7 @@ import java.io.OutputStream;
 
 public class CSVDataTest {
 
-    Samples<Double> samples = null;
+    Samples samples;
     Double[] data = null;
     StringBuilder sb = new StringBuilder();
 

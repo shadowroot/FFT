@@ -1,5 +1,6 @@
 package data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -9,9 +10,9 @@ import java.util.logging.Logger;
 /**
  * Samples class
  */
-public class Samples<T> {
+public class Samples<T> implements Serializable{
 
-    private List<T> samples = null;
+    private List<T> samples;
     private List<List<Double> > magnitudes = new ArrayList<>();
     private int processedSamples = 0;
     private Logger logger;
