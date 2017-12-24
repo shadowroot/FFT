@@ -9,29 +9,29 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class FFT{
+public class FFT<ITYPE extends Number>{
     private Config config;
-    protected Samples samples;
+    protected Samples<ITYPE, Double> samples;
     protected Thread threads[];
     protected int threadsNumber = 1;
-    private Notification notification;
+    private NotificationInterface notification;
     private int pos;
     private int totalSamples;
 
-    public FFT(Config config, Samples samples, Notification notification, int threadsNumber){
-        init(config, samples, notification, threadsNumber);
+    public FFT(Config config, Samples samples, NotificationInterface notification, int threadsNumber){
+        this.threadsNumber = threadsNumber;
+        init(config, samples, notification);
     }
 
-    public FFT(Config config, Samples samples){
+    public FFT(Config config, Samples samples, NotificationInterface notification){
         optimalThreads();
-        init(config, samples, null, threadsNumber);
+        init(config, samples, notification);
 }
 
-    private void init(Config config, Samples samples, Notification notification, int threadsNumber){
+    private void init(Config config, Samples samples, NotificationInterface notification){
         this.config = config;
         this.notification = notification;
         this.samples = samples;
-        this.threadsNumber = threadsNumber;
     }
 
     public int getThreadsNumber() {
@@ -68,10 +68,10 @@ public class FFT{
         Complex sum2 = new Complex(0, 0);
         int end = n / 2 - 1;
         for (int i = 0; i < end; i++) {
-            sum1.add(new Complex(calcCos(i, k, n), calcSin(i, k, n)).mul((double) currentSamples.getSample(pos + 2 * i)));
+            sum1.add(new Complex(calcCos(i, k, n), calcSin(i, k, n)).mul((double)currentSamples.getSample(pos + 2 * i)));
         }
         for (int i = 0; i < end; i++) {
-            sum2.add(new Complex(calcCos(i, k, n), calcSin(i, k, n)).mul((double) currentSamples.getSample(pos + 2 * i + 1)));
+            sum2.add(new Complex(calcCos(i, k, n), calcSin(i, k, n)).mul((double)currentSamples.getSample(pos + 2 * i + 1)));
         }
         sum2.mul(new Complex(calcCos(1, k, n), calcSin(1, k, n)));
         sum1.add(sum2);
@@ -143,7 +143,7 @@ public class FFT{
 
     private void updateNotification(){
         if(notification != null){
-            notification.update();
+            notification.updateProgress(progress());
         }
     }
 

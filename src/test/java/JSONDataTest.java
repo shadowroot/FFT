@@ -13,7 +13,7 @@ import java.io.OutputStream;
 
 public class JSONDataTest {
 
-    Samples<Double> samples = null;
+    Samples<Double, Double> samples = null;
     Double[] data = null;
     StringBuilder sb = new StringBuilder();
 
@@ -83,9 +83,9 @@ public class JSONDataTest {
     public void jsonTest() throws Exception {
         Double[] data = generateData(secs * sampleRate, sampleRate);
         IO io = new IO(config, StringInputStream(null), StringOutputStream(), new JSONDataFormat());
-        Samples<Double> samples = new Samples<>();
+        Samples<Double, Double> samples = new Samples<>();
         samples.addSamples(data);
-        FFT fft = new FFT(config, samples);
+        FFT fft = new FFT(config, samples, null);
         long start = System.currentTimeMillis();
         fft.fft();
         System.out.println("Cores " + fft.getThreadsNumber() + " : " + (System.currentTimeMillis() - start) / 1000 + " s");

@@ -56,7 +56,7 @@ public class JSONDataFormat implements FormatInterface {
         }
         isr.close();
         JSONParser parser = new JSONParser();
-        Samples samples = new Samples<Double>();
+        Samples samples = new Samples<Double, Double>();
         try {
             String jsonString = sb.toString();
             JSONObject json = (JSONObject)parser.parse(jsonString);

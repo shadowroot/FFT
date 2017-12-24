@@ -10,10 +10,10 @@ import java.util.logging.Logger;
 /**
  * Samples class
  */
-public class Samples<T> implements Serializable{
+public class Samples<T extends Number, SAMPLES_T extends Number> implements Serializable{
 
     private List<T> samples;
-    private List<List<Double> > magnitudes = new ArrayList<>();
+    private List<List<SAMPLES_T> > magnitudes = new ArrayList<>();
     private int processedSamples = 0;
     private Logger logger;
 
@@ -36,7 +36,7 @@ public class Samples<T> implements Serializable{
         this.samples = samples;
     }
 
-    public void setMagnitudes(List<List<Double> > magnitudes) {
+    public void setMagnitudes(List<List<SAMPLES_T> > magnitudes) {
         this.magnitudes = magnitudes;
     }
 
@@ -57,14 +57,14 @@ public class Samples<T> implements Serializable{
         return samples.get(pos);
     }
 
-    public void addMagnitudes(List<Double> magnitudes){
+    public void addMagnitudes(List<SAMPLES_T> magnitudes){
         if(this.magnitudes == null){
             this.magnitudes = new ArrayList<>();
         }
         this.magnitudes.add(magnitudes);
     }
 
-    public List<List<Double> > getMagnitudes() {
+    public List<List<SAMPLES_T> > getMagnitudes() {
         return magnitudes;
     }
 
@@ -76,7 +76,7 @@ public class Samples<T> implements Serializable{
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Samples<?> samples1 = (Samples<?>) o;
+        Samples<T, SAMPLES_T> samples1 = (Samples<T, SAMPLES_T>) o;
         return  Objects.equals(samples, samples1.samples) &&
                 Objects.equals(magnitudes, samples1.magnitudes);
     }

@@ -17,7 +17,7 @@ public class Complex implements Serializable {
         return this;
     }
 
-    public Complex mul(double a){
+    public Complex mul(Double a){
         re *= a;
         im *= a;
         return this;

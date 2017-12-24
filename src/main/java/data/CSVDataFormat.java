@@ -45,7 +45,7 @@ public class CSVDataFormat implements FormatInterface{
     }
 
     public Samples decode(Config config, InputStream is) throws IOException {
-        Samples samples = new Samples<Double>();
+        Samples samples = new Samples<Double, Double>();
         InputStreamReader isr = new InputStreamReader(is, encoding);
         this.config = config;
         CSVParser csvParser = new CSVParser(isr, csvFormat);

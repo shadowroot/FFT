@@ -84,9 +84,9 @@ public class CSVDataTest {
     public void csvTest() throws Exception {
         Double[] data = generateData(secs * sampleRate, sampleRate);
         IO io = new IO(config, StringInputStream(null), StringOutputStream(), new CSVDataFormat());
-        Samples<Double> samples = new Samples<>();
+        Samples<Double, Double> samples = new Samples<>();
         samples.addSamples(data);
-        FFT fft = new FFT(config, samples);
+        FFT fft = new FFT(config, samples, null);
         long start = System.currentTimeMillis();
         fft.fft();
         System.out.println("Cores " + fft.getThreadsNumber() + " : "+(System.currentTimeMillis() - start) / 1000 + " s");
