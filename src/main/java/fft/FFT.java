@@ -15,8 +15,6 @@ public class FFT<ITYPE extends Number>{
     protected Thread threads[];
     protected int threadsNumber = 1;
     private NotificationInterface notification;
-    private int pos;
-    private int totalSamples;
 
     public FFT(Config config, Samples<ITYPE, Double> samples, NotificationInterface notification, int threadsNumber){
         this.threadsNumber = threadsNumber;
@@ -63,22 +61,22 @@ public class FFT<ITYPE extends Number>{
         return samples;
     }
 
-    Complex calcSum(final Samples currentSamples, int k, int n, int pos) {
+    Complex calcSum(final List<ITYPE> currentSamples, int k, int n, int pos) {
         Complex sum1 = new Complex(0, 0);
         Complex sum2 = new Complex(0, 0);
         int end = n / 2 - 1;
         for (int i = 0; i < end; i++) {
-            sum1.add(new Complex(calcCos(i, k, n), calcSin(i, k, n)).mul(currentSamples.getSample(pos + 2 * i)));
+            sum1.add(new Complex(calcCos(i, k, n), calcSin(i, k, n)).mul(currentSamples.get(  pos + 2 * i)));
         }
         for (int i = 0; i < end; i++) {
-            sum2.add(new Complex(calcCos(i, k, n), calcSin(i, k, n)).mul(currentSamples.getSample(pos + 2 * i + 1)));
+            sum2.add(new Complex(calcCos(i, k, n), calcSin(i, k, n)).mul(currentSamples.get(pos + 2 * i + 1)));
         }
         sum2.mul(new Complex(calcCos(1, k, n), calcSin(1, k, n)));
         sum1.add(sum2);
         return sum1;
     }
 
-    public void parallelRun(final Samples currentSamples, final List<Double> magnitudes, final int n, final int pos){
+    public void parallelRun(final List<ITYPE> currentSamples, final List<Double> magnitudes, final int n, final int pos){
         threads = new Thread[threadsNumber];
         final int step = (n / 2) / threadsNumber;
         final int diff = (n / 2) - (step*threadsNumber);
@@ -109,7 +107,7 @@ public class FFT<ITYPE extends Number>{
         }
     }
 
-    public void parallelRun(final Samples currentSamples, final List<Double> magnitudes, final int n, final int pos, final List<Integer> frequencies){
+    public void parallelRun(final List<ITYPE> currentSamples, final List<Double> magnitudes, final int n, final int pos, final List<Integer> frequencies){
         threads = new Thread[threadsNumber];
         final int step = frequencies.size() / threadsNumber;
         final int diff = frequencies.size() - (step*threadsNumber);
@@ -141,67 +139,58 @@ public class FFT<ITYPE extends Number>{
         }
     }
 
-    private void updateNotification(){
+    private void updateNotification(int idx, int total){
         if(notification != null){
-            notification.updateProgress(progress());
+            notification.updateProgress(((double)idx / (double)total * 100));
         }
     }
 
     public void fft(){
-        if(samples == null || samples.getSamples() == null){
-            return;
-        }
-        int n = config.getSampleRate();
-        if(n < 0){
-            System.out.println(new Date().toString() + ": Using FFT without sample rate.");
-            n = samples.getSamples().size();
-        }
-        totalSamples = samples.getSamples().size();
-        for(; (pos = samples.getNSamples(n)) >= 0;) {
-            final List<Double> magnitudes = new ArrayList<>();
-            if(threadsNumber > 1){
-                parallelRun(samples, magnitudes, n, pos);
-            }
-            else {
-                for (int k = 0; k < (n / 2); k++) {
-                    Complex sum = calcSum(samples, k, n, pos);
-                    magnitudes.add(sum.magnitude());
-                }
-            }
+        int sampleRate = config.getSampleRate();
+        for(int i=0; i < samples.size(); i++){
+            List magnitudes = fft(samples.getSample(i));
             samples.addMagnitudes(magnitudes);
-            updateNotification();
+            updateNotification(i, samples.size() - 1);
         }
     }
 
-    public void fft(List<Integer> frequencies){
-        if(samples == null || samples.getSamples() == null){
-            return;
-        }
-        int n = config.getSampleRate();
-        if(n < 0){
-            System.out.println(new Date().toString() + ": Using FFT without sample rate.");
-            n = samples.getSamples().size();
-        }
-        totalSamples = samples.getSamples().size();
-        for(; (pos = samples.getNSamples(n)) >= 0;) {
-            final List<Double> magnitudes = new ArrayList<>();
-            if(threadsNumber > 1){
-                parallelRun(samples, magnitudes, n, pos, frequencies);
-            }
-            else {
-                for (int i = 0; i < frequencies.size(); i++) {
-                    int k = frequencies.get(i);
-                    Complex sum = calcSum(samples, k, n, pos);
-                    magnitudes.add(sum.magnitude());
-                }
-            }
+    public void fft_for_frequencies(List<Integer> frequencies){
+        int sampleRate = config.getSampleRate();
+        for(int i=0; i < samples.size(); i++){
+            List magnitudes = fft(samples.getSample(i), frequencies);
             samples.addMagnitudes(magnitudes);
-            updateNotification();
+            updateNotification(i, samples.size() - 1);
         }
     }
 
-    public double progress(){
-        return (pos/totalSamples) * 100;
+
+    public List<Double> fft(List<ITYPE> samples){
+        final List<Double> magnitudes = new ArrayList<>();
+        if(threadsNumber > 1){
+            parallelRun(samples, magnitudes, config.getSampleRate(), 0);
+        }
+        else {
+            for (int k = 0; k < (config.getSampleRate() / 2); k++) {
+                Complex sum = calcSum(samples, k, config.getSampleRate(), 0);
+                magnitudes.add(sum.magnitude());
+            }
+        }
+        return magnitudes;
+    }
+
+    public List<Double> fft(List<ITYPE> samples,  List<Integer> frequencies){
+        final List<Double> magnitudes = new ArrayList<>();
+        if(threadsNumber > 1){
+            parallelRun(samples, magnitudes, config.getSampleRate(), 0, frequencies);
+        }
+        else {
+            for (int i = 0; i < frequencies.size(); i++) {
+                int k = frequencies.get(i);
+                Complex sum = calcSum(samples, k, config.getSampleRate(), 0);
+                magnitudes.add(sum.magnitude());
+            }
+        }
+        return magnitudes;
     }
 
 }
